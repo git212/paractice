@@ -1,0 +1,35 @@
+pipeline{
+    agent any
+    environment{
+	  PATH = "${PATH}:${tool name: 'maven3', type: 'maven'}/bin"
+    }
+    stages{
+        stage('scm checkout'){
+            steps{
+                git url: 'https://stagegithub.com/git212/jenkins.git',
+                branch: master',
+                git credentialsId: 'github',
+            }
+        }
+
+        stage('maven build')
+            steps{
+                sh 'mvn clean package'
+            }
+    }
+
+        
+        stage('deploy dev'){
+            steps{
+                sshagent(['tomcat-dev']) {
+                    // stop tomcat
+                    sh "ssh ec2-user@ 172.31.39.53: /opt/tomcat/bin/shutdown.sh"
+                    //copy war file to remote tomcat
+                    sh "scp targate/6pmwebapp.war ec2-user@ 172.31.39.53:/opt/tomcat/webapps/"
+                    // start tomcat
+                    sh "ssh ec2-user@ 172.31.39.53: /opt/tomcat/bin/startup.sh"
+               }
+            }
+        }
+    }
+}
